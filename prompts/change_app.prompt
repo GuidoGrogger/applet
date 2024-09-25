@@ -1,0 +1,29 @@
+##BEGIN_HTML##
+{current_html}
+##END_HTML##
+##BEGIN_LOCAL_STORAGE##
+{current_local_storage}
+##END_LOCAL_STORAGE##
+Change the HTML app above based on the following description:
+--
+{description}
+--
+**Instructions:**
+1. Only make changes to the HTML or JavaScript if necessary for the functionality described. Focus primarily on updating the local storage data.
+2. **Local Storage Persistence**: Use only local storage to persist data between page loads. Ensure the app can be reloaded any time without issues.
+3. **Data Consistency**: Do not save derived data in local storage. Always calculate derived data on the fly to maintain consistency.
+4. **Data Migration**: If the description requires changes to the data structure, adjust the local storage JSON accordingly and ensure proper data migration.
+5. **Output Format**:
+    - **If Only Local Storage Needs to Change**: Output only the updated local storage.
+    - **If HTML or JavaScript Must Change**: Clearly indicate the necessary code changes along with local storage updates.
+6. **No Code Injection**: Do not add or modify JavaScript code that programmatically changes local storage (e.g., avoid adding filters or data manipulation scripts).
+
+**Response Structure**: Provide the output in the following format without additional explanations:
+
+##BEGIN_HTML##
+<html>...
+##END_HTML##
+##BEGIN_LOCAL_STORAGE##
+{"entry": "[{\"key1\": ...
+##END_LOCAL_STORAGE##
+

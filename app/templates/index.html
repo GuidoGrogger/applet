@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Applet Creator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="/static/css/all.css">
+</head>
+<body>
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator">
+    <div class="content">
+      <p>Processing your audio, please wait...</p>
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Applet Creator</h1>
+
+    <div class="description">
+      <p>Create smart notes that simplify your life! These lightweight apps are perfect for daily tasks, reminders, and small projects. Share them easily with friends and colleagues, no hassle required.</p>
+    </div>
+
+    <!-- Option Section -->
+    <div class="option">
+      <h2>Create a New Applet with Voice</h2>
+      <p>Record your voice to create an applet. Here are some ideas of what you could say:</p>
+      <div class="examples">
+        <p>1. "Set up a TODO list for my daily tasks."</p>
+        <p>2. "Create a recipe card for my favorite chocolate chip cookies."</p>
+        <p>3. "Design a workout routine with exercises for each day of the week."</p>
+        <p>4. "Plan a BBQ party with a guest list and food checklist."</p>
+        <p>5. "Make a packing checklist for my upcoming vacation."</p>
+      </div>
+      <div class="dropdown-container">
+        <button id="recordButton" title="Record Voice">
+          <i class="fas fa-microphone"></i> Record Voice
+        </button>
+        <button id="stopButton" disabled title="Stop Recording">
+          <i class="fas fa-stop"></i> Stop Recording
+        </button>
+      </div>
+      <p id="status">Status: Not Recording</p>
+    </div>
+  </div>
+
+  <!-- JavaScript to Handle the Functionality -->
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const recordButton = document.getElementById('recordButton');
+    const stopButton = document.getElementById('stopButton');
+    const status = document.getElementById('status');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    recordButton.addEventListener('click', async () => {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        status.textContent = 'Status: Recording...';
+        recordButton.disabled = true;
+        stopButton.disabled = false;
+        recordButton.classList.add('recording');
+
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+      }
+    });
+
+    stopButton.addEventListener('click', () => {
+      mediaRecorder.stop();
+      status.textContent = 'Status: Stopped';
+      loadingIndicator.style.display = 'flex'; // Show loading indicator
+      recordButton.classList.remove('recording');
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioChunks = [];
+
+        const formData = new FormData();
+        formData.append('audio', audioBlob);
+
+        try {
+          const response = await fetch('/applet', {
+            method: 'POST',
+            body: formData
+          });
+          loadingIndicator.style.display = 'none'; // Hide loading indicator
+          if (response.ok) {
+            const data = await response.json();
+            window.location.href = `/applet/${data.uuid}`;
+          } else {
+            throw new Error('Upload failed');
+          }
+        } catch (error) {
+          loadingIndicator.style.display = 'none'; // Hide loading indicator
+          alert('Failed to send voice recording to the server. Please try recording again.');
+          recordButton.disabled = false;
+          stopButton.disabled = true;
+          status.textContent = 'Status: Ready to record again';
+        }
+
+        recordButton.disabled = false;
+        stopButton.disabled = true;
+      };
+    });
+  </script>
+</body>
+</html>

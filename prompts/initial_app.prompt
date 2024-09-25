@@ -1,0 +1,38 @@
+Create a simple app using HTML and JavaScript in one file based on the following description:
+--
+{description}
+--
+**Instructions:**
+
+1. **Single File Structure**:
+    - The entire application must be contained within a single HTML file, including all necessary JavaScript and CSS.
+
+2. **Local Storage for Data Persistence**:
+    - Use only local storage to persist data between page loads.
+    - Ensure the app can be reloaded at any time without losing data.
+
+3. **No Authentication or User Management**:
+    - Do not include any features related to user authentication or management.
+
+4. **Data Consistency**:
+    - Do not store derived or calculated data in local storage.
+    - Always compute derived data on the fly to maintain consistency.
+
+5. **Initial Data Generation**:
+    - If the app requires initial data, generate it and include it in the local storage section.
+    - Ensure that the initial data is structured appropriately and can be modified later as needed.
+
+6. **Output Format**:
+    - **HTML Section**: Provide the complete HTML structure, including any necessary JavaScript.
+    - **Local Storage Section**: Provide the initial local storage data in JSON format.
+    - If initial local storage is not required, you leave it empty or omit it.
+    - Make sure that the local storage entries are encoded properly.
+
+Response Structure: Provide the output in the following format without additional explanations:
+
+##BEGIN_HTML##
+<html>...
+##END_HTML##                    
+##BEGIN_LOCAL_STORAGE##
+{"entry": "[{\"key1\": ...
+##END_LOCAL_STORAGE##

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Applet {{ uuid }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="/static/css/all.css">
+<script src="/static/js/applet_lib.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Applet {{ uuid }}</h1>
+
+      <div class="dropdown-container">
+        <!-- Reordered buttons -->
+        <button id="shareApplet" title="Share Applet">
+          <i class="fas fa-share-alt"></i> Share Applet
+        </button>
+        <button id="cleanData" title="Clean Data">
+          <i class="fas fa-broom"></i> Clean Data
+        </button>
+        <button id="showPrompt" title="Show Original Prompt">
+          <i class="fas fa-info-circle"></i> Show Prompt
+        </button>
+        <button id="newApplet" title="Create New Applet">
+          <i class="fas fa-plus"></i> New Applet
+        </button>
+        <button id="changeApplet" title="Change Applet">
+          <i class="fas fa-sync-alt"></i> Change Applet
+        </button>
+      </div>
+
+    <div class="iframe-container">
+      <iframe id="iframe" src=""></iframe>
+    </div>
+  </div>
+
+  <!-- Popup for the prompt -->
+  <div id="promptPopup" class="popup">
+    <div class="popup-content">
+      <span class="close">&times;</span>
+      <h2>Prompts</h2>
+      {% for prompt in prompts %}
+          <p id="promptText">{{ prompt | e }}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Share notification -->
+  <div id="shareNotification">
+    URL copied to clipboard!
+  </div>
+
+  <!-- Loading indicator -->
+  <div id="loadingIndicator">
+    <div class="content">
+      <p>Processing your audio, please wait...</p>
+      <div class="loader"></div>
+    </div>
+  </div>
+
+<script>
+updateApplet('{{ uuid }}', document.getElementById('iframe'));
+
+document.getElementById('cleanData').addEventListener('click', async function() {
+  handleCleanData('{{ uuid }}');
+});
+
+document.getElementById('showPrompt').addEventListener('click', function() {
+  document.getElementById('promptPopup').style.display = 'block';
+});
+
+document.querySelector('.close').addEventListener('click', function() {
+  document.getElementById('promptPopup').style.display = 'none';
+});
+
+window.addEventListener('click', function(event) {
+  if (event.target == document.getElementById('promptPopup')) {
+    document.getElementById('promptPopup').style.display = 'none';
+  }
+});
+
+document.getElementById('shareApplet').addEventListener('click', function() {
+  const currentUrl = window.location.href;
+  navigator.clipboard.writeText(currentUrl).then(function() {
+    const notification = document.getElementById('shareNotification');
+    notification.style.display = 'block';
+    setTimeout(function() {
+      notification.style.display = 'none';
+    }, 3000);
+  }).catch(function(err) {
+    console.error('Failed to copy URL: ', err);
+  });
+});
+
+document.getElementById('newApplet').addEventListener('click', function() {
+  const confirmMessage = "Warning: If you leave this page to create a new applet, you may lose access to the current applet unless you've saved the URL. You can use the share button to copy the current URL. Are you sure you want to continue?";
+  
+  if (confirm(confirmMessage)) {
+    window.location.href = '/'; // Redirect to the homepage
+  }
+});
+
+document.getElementById('changeApplet').addEventListener('click', async function() {
+  const button = this;
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  if (!button.classList.contains('recording')) {
+      // Start recording
+      button.classList.add('recording');
+      button.classList.remove('default'); // Remove default class
+      button.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+      button.style.backgroundColor = '#E74C3C'; // Red color to indicate recording
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const audioChunks = [];
+
+      mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          loadingIndicator.style.display = 'flex'; // Show loading indicator
+
+          try {
+              const newUuid = await changeApplet('{{ uuid }}', audioBlob);
+              window.location.href = `/applet/${newUuid}`;
+          } catch (error) {
+              alert(error.message);
+              resetButton();
+          } finally {
+              loadingIndicator.style.display = 'none'; // Hide loading indicator
+          }
+      };
+
+      mediaRecorder.start();
+      button.mediaRecorder = mediaRecorder;
+  } else {
+      // Stop recording
+      button.mediaRecorder.stop();
+      resetButton();
+  }
+});
+
+function resetButton() {
+  const button = document.getElementById('changeApplet');
+  button.classList.remove('recording');
+  button.classList.add('default'); // Add default class
+  button.innerHTML = '<i class="fas fa-sync-alt"></i> Change Applet';
+  button.style.backgroundColor = '#4A90E2'; // Reset to original color
+  delete button.mediaRecorder;
+}
+</script>
+</body>
+</html>
